@@ -1,5 +1,7 @@
 ## Verify: Framework Agnostic Authentication & Authorization
 
+[![Travis-CI Build Status](https://secure.travis-ci.org/psecio/verify.png?branch=master)](http://travis-ci.org/psecio/verify)
+
 The goal of the `Verify` library is to provide a structure for good authorization and authentication practices using your own data sources. `Verify` provides interfaces you can program to and inject your own objects and data into the tool for evaluation.
 
 ### Example Code
