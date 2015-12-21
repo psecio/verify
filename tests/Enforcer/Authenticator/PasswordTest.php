@@ -73,4 +73,6 @@ class TestSubject implements \Psecio\Verify\Subject
   {
     return $this->user->password;
   }
+  public function getGroups(){ return []; }
+  public function getPermissions(){ return []; }
 }
