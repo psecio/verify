@@ -6,61 +6,43 @@ The goal of the `Verify` library is to provide a structure for good authorizatio
 
 ### Example Code
 
+First off, we're going to make a user based on an object we already have. In most cases the values on a user (model or otherwise) are referenced as properties. To make this creation easier, `Verify` has a `Simple` subject class you can use. You'll see this in the example below:
+
 ```php
 <?php
 
-// First we have the user from our own source (like an Eloquent record instance)
-// with a "get" method defined
+$user = (object)[
+  'username' => 'ccornutt',
+  'password' => password_hash('test1234', PASSWORD_DEFAULT),
+  'permissions' => ['test1', 'test2', 'edit']
+];
+$subject = new \Psecio\Verify\Subject\Simple($user);
 
-class MyUser
-{
-  protected $properties = [
-    'username' => 'ccornutt',
-    'password' => '$2y$10$tt3pnrzyAg81RCtKmSgEC.cRIGjfcGacE3VthMaotO.wZhupZQdmG'
-  ];
+// Now we'll set up our Gateway to work with our user and run some checks
+$gate = new Gateway($subject);
 
-  public function get($propertyName)
-  {
-    return $this->properties[$propertyName];
-  }
+// We can see if the password they entered matches
+echo 'Password match? '.var_export($gate->authorize($_POST['password']), true);
+
+// And we can check their permissions with the "can" and "cannot" checks
+if ($gate->can('edit') && $gate->cannot('delete')) {
+    echo "We're here!";
 }
 
-// Then we inject this user into one based on the Verify "subject" interface
-class User implements \Psecio\Verify\Subject
-{
-  private $user;
-
-  public function __construct($user)
-  {
-      $this->user = $user;
-  }
-
-  public function getIdentifier()
-  {
-    return $this->user->get('username');
-  }
-
-  public function getCredential()
-  {
-    return $this->user->get('password');
-  }
+// Or we can make it a bit more complex and include multiple
+if ($gate->can(['edit', 'test1']) && $gate->cannot(['bar', 'test2'])) {
+    /* Won't get here, the user has "test" so it fails */
+} else {
+    echo "This one fails!";
 }
 
-// -- Now to put it to use.... -------------------
-$myUser = new MyUser();
-$subject = new User($myUser);
-
-$password = 'test';
-
-$enforcer = \Psecio\Verify\Enforcer::make('password');
-$result = $enforcer->login($subject, $password);
-
-if ($result === true) {
-  echo 'Login valid!';
+// Or, if you'd like to build up more of a policy:
+$gate->allow('edit')->deny('test1234');
+if ($gate->evaluate() === true) {
+    echo 'Pass with flying colors!';
 }
+
 ?>
 ```
 
-### Verifiers:
-
-- `password`
+The `Verify` library makes use of the [PropAuth](https://github.com/psecio/propauth) library behind the scenes. This library has a much more powerful engine than is just used here. If you have more "power" needs, check it out.

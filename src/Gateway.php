@@ -79,18 +79,34 @@ class Gateway
     return $this;
   }
 
-  public function can($permName)
+  public function can($perm)
   {
-      $policy = Policy::instance()->hasPermissions($permName);
+      $policy = Policy::instance();
+      if (!is_array($perm)) {
+          $perm = [$perm];
+      }
+      foreach ($perm as $p) {
+            $policy->hasPermissions($p);
+      }
       $enforcer = new PropAuthEnforcer();
 
       $result = $enforcer->evaluate($this->getSubject(), $policy);
       return $result;
   }
 
-  public function cannot($permName)
+  public function cannot($perm)
   {
-      return (!$this->can($permName));
+      $policy = Policy::instance();
+      if (!is_array($perm)) {
+          $perm = [$perm];
+      }
+      foreach ($perm as $p) {
+            $policy->notPermissions($p);
+      }
+      $enforcer = new PropAuthEnforcer();
+
+      $result = $enforcer->evaluate($this->getSubject(), $policy);
+      return $result;
   }
 
   public function authorize($password)
